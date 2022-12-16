@@ -40,7 +40,7 @@ class Client(models.Model):
         )
     time_zone = models.CharField(
             max_length=10,
-            help_text='Формат: UCT+01:00'
+            help_text='Формат: UCT+01:00',
             verbose_name='Часовой пояс'
         )
 
@@ -65,6 +65,10 @@ class Message(models.Model):
         )
     clients = models.ManyToManyField(
             'Client',
-            related_name='clients',
+            related_name='messages',
             verbose_name='Клиенты'
         )
+
+    class Meta:
+        verbose_name = 'Сообщение'
+        verbose_name_plural = 'Сообщения'
