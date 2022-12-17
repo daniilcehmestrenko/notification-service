@@ -38,10 +38,15 @@ class TotalStatsListAPIView(APIView):
             MailingList.objects
             .values('messages__status')
             .annotate(
-                count_messages=Count('messages__clients'),
-                mailing_list_pk=F('pk'),
-                client_filter=F('client_filter')
+                count_message=Count('messages__clients'),
             )
+            .values(
+                message_status=F('messages__status'),
+                mailing_list_pk=F('pk'),
+                client_filter=F('client_filter'),
+                count_message=F('count_message')
+            )
+            .order_by('client_filter')
         )
 
         return Response(queryset)
