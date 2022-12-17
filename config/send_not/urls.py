@@ -1,7 +1,8 @@
 from django.urls import path
 
 from .views import (ClientDetailAPIView, ClientListAPIView, MailingListAPIView,
-                    MailingListDetailAPIView, MessageDetailAPIView, MessageListAPIView, TotalStatsAPIView,)
+                    MailingListDetailAPIView, MessageDetailAPIView,
+                    MessageListAPIView, TotalStatsDetailAPIView, TotalStatsListAPIView,)
 
 
 urlpatterns = [
@@ -37,7 +38,12 @@ urlpatterns = [
     ),
     path(
         'totalstats/',
-        TotalStatsAPIView.as_view(),
+        TotalStatsListAPIView.as_view(),
         name='total_stats'
+    ),
+    path(
+        'totalstats/<int:pk>/',
+        TotalStatsDetailAPIView.as_view(),
+        name='total_stats_detail'
     ),
 ]
