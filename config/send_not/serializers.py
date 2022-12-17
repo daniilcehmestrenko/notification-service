@@ -1,6 +1,14 @@
-from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField
+from rest_framework import serializers
+from rest_framework.serializers import (ModelSerializer, PrimaryKeyRelatedField,
+                                        Serializer)
 
 from .models import Client, MailingList, Message
+
+
+class TotalStatsSerializer(Serializer):
+    client_filter = serializers.CharField()
+    count_messages = serializers.IntegerField()
+
 
 
 class ClientSerializer(ModelSerializer):
