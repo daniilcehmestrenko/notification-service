@@ -17,5 +17,5 @@ class MailingListAdmin(admin.ModelAdmin):
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
-    list_display = ('date_create', 'status')
-    list_display_links = ('status',)
+    list_display = ('pk', 'date_create', 'status')
+    list_display_links = ('date_create',)

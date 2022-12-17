@@ -17,6 +17,9 @@ class MailingList(models.Model):
             verbose_name='Дата и время окончания рассылки'
         )
 
+    def __str__(self):
+        return self.client_filter
+
     class Meta:
         verbose_name = 'Рассылка'
         verbose_name_plural = 'Рассылки'
@@ -44,6 +47,9 @@ class Client(models.Model):
             verbose_name='Часовой пояс'
         )
 
+    def __str__(self):
+        return self.phone
+
     class Meta:
         verbose_name = 'Клиент'
         verbose_name_plural = 'Клиенты'
@@ -68,6 +74,8 @@ class Message(models.Model):
             related_name='messages',
             verbose_name='Клиенты'
         )
+    def __str__(self):
+        return str(self.pk)
 
     class Meta:
         verbose_name = 'Сообщение'
