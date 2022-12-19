@@ -34,8 +34,12 @@ class MailingStartAPIView(SendMail, APIView):
                 )
             new_message.clients.set(clients)
 
+            return Response(
+                    {"Message": "Рассылка прошла успешно"}
+                )
+
         return Response(
-                {"Message": "Рассылка прошла успешно"}
+                {"Message": "Что-то пошло не так"}
             )
 
 
