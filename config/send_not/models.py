@@ -55,7 +55,7 @@ class Client(models.Model):
         verbose_name_plural = 'Клиенты'
 
 
-class CustomQuerySetMessage(models.QuerySet):
+class CustomManagerMessage(models.Manager):
 
     def create_message(self, status, mailing_list, clients):
         new_message = Message.objects.create(
@@ -87,7 +87,7 @@ class Message(models.Model):
             verbose_name='Клиенты'
         )
 
-    objects = CustomQuerySetMessage.as_manager()
+    objects = CustomManagerMessage()
 
     def __str__(self):
         return str(self.pk)
