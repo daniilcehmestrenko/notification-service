@@ -1,10 +1,42 @@
-from django.db.models import Count, F
+from django.db.models import Count, F, Q
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Client, MailingList, Message
-from .serializers import ClientSerializer, MailingListSerializer, MessageSerializer
+from .serializers import ClientSerializer, MailingListSerializer
+from .service import SendMail
+
+
+class MailingStartAPIView(SendMail, APIView):
+
+    def get(self, request, pk):
+        mailing_list = MailingList.objects.get(pk=pk)
+        client_filter = (
+                Q(tag=mailing_list.client_filter) |
+                Q(code=mailing_list.client_filter)
+            )
+        clients = Client.objects.filter(client_filter)
+        status_messages = []
+        for client in clients:
+            status_messages.append(
+                self.send_mail(
+                    pk=pk,
+                    phone=int(client.phone),
+                    text=mailing_list.text
+                )
+            )
+
+        if all(status_messages):
+            new_message = Message.objects.create(
+                    status=True,
+                    mailing_list=mailing_list,
+                )
+            new_message.clients.set(clients)
+
+        return Response(
+                {"Message": "Рассылка прошла успешно"}
+            )
 
 
 class TotalStatsDetailAPIView(APIView):
@@ -71,13 +103,3 @@ class MailingListAPIView(ListCreateAPIView):
 class MailingListDetailAPIView(RetrieveUpdateDestroyAPIView):
     queryset = MailingList.objects.all()
     serializer_class = MailingListSerializer
-
-
-class MessageListAPIView(ListCreateAPIView):
-    queryset = Message.objects.all()
-    serializer_class = MessageSerializer
-
-
-class MessageDetailAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Message.objects.all()
-    serializer_class = MessageSerializer

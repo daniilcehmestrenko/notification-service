@@ -1,14 +1,6 @@
-from rest_framework import serializers
-from rest_framework.serializers import (ModelSerializer, PrimaryKeyRelatedField,
-                                        Serializer)
+from rest_framework.serializers import ModelSerializer
 
-from .models import Client, MailingList, Message
-
-
-class TotalStatsSerializer(Serializer):
-    client_filter = serializers.CharField()
-    count_messages = serializers.IntegerField()
-
+from .models import Client, MailingList
 
 
 class ClientSerializer(ModelSerializer):
@@ -20,29 +12,4 @@ class ClientSerializer(ModelSerializer):
 class MailingListSerializer(ModelSerializer):
     class Meta:
         model = MailingList
-        fields = '__all__'
-
-
-class MessageSerializer(ModelSerializer):
-    mailing_list = MailingListSerializer(
-                read_only=True
-            )
-    mailing_list_id = PrimaryKeyRelatedField(
-                write_only=True,
-                source='mailing_list',
-                queryset=MailingList.objects.all()
-            )
-    clients = ClientSerializer(
-                read_only=True,
-                many=True,
-            )
-    clients_id = PrimaryKeyRelatedField(
-                write_only=True,
-                many=True,
-                source='clients',
-                queryset=Client.objects.all()
-            )
-
-    class Meta:
-        model = Message
         fields = '__all__'
