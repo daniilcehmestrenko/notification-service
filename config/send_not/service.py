@@ -20,7 +20,6 @@ class SendMail:
             )
         data = response.json()
         if data["message"] == 'OK':
-
             return True
 
         return False
