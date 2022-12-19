@@ -55,6 +55,18 @@ class Client(models.Model):
         verbose_name_plural = 'Клиенты'
 
 
+class CustomQuerySetMessage(models.QuerySet):
+
+    def create_message(self, status, mailing_list, clients):
+        new_message = Message.objects.create(
+                status=status,
+                mailing_list=mailing_list,
+            )
+        new_message.clients.set(clients)
+
+        return new_message
+
+
 class Message(models.Model):
     date_create = models.DateTimeField(
             auto_now=True,
@@ -74,6 +86,9 @@ class Message(models.Model):
             related_name='messages',
             verbose_name='Клиенты'
         )
+
+    objects = CustomQuerySetMessage.as_manager()
+
     def __str__(self):
         return str(self.pk)
 
