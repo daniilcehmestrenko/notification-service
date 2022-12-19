@@ -10,6 +10,13 @@ from .service import SendMail
 
 class MailingStartAPIView(SendMail, APIView):
 
+    def create_message(self, status, mailing_list, clients):
+        new_message = Message.objects.create(
+                status=status,
+                mailing_list=mailing_list,
+            )
+        new_message.clients.set(clients)
+
     def get(self, request, pk):
         mailing_list = MailingList.objects.get(pk=pk)
         client_filter = (
@@ -30,18 +37,18 @@ class MailingStartAPIView(SendMail, APIView):
                 clients_failed.append(client)
 
         if clients_accept:
-            new_message = Message.objects.create(
-                    status=True,
+            self.create_message(
                     mailing_list=mailing_list,
+                    status=True,
+                    clients=clients_accept
                 )
-            new_message.clients.set(clients_accept)
 
         if clients_failed:
-            new_message = Message.objects.create(
-                    status=False,
+            self.create_message(
                     mailing_list=mailing_list,
+                    status=False,
+                    clients=clients_failed
                 )
-            new_message.clients.set(clients_failed)
 
         return Response({"Message": "Рассылка прошла успешно"})
 
