@@ -17,30 +17,33 @@ class MailingStartAPIView(SendMail, APIView):
                 Q(code=mailing_list.client_filter)
             )
         clients = Client.objects.filter(client_filter)
-        status_messages = []
+        clients_accept = []
+        clients_failed = []
+
         for client in clients:
-            status_messages.append(
-                self.send_mail(
+            if self.send_mail(
                     pk=pk,
                     phone=int(client.phone),
-                    text=mailing_list.text
-                )
-            )
+                    text=mailing_list.text):
+                clients_accept.append(client)
+            else:
+                clients_failed.append(client)
 
-        if all(status_messages):
+        if clients_accept:
             new_message = Message.objects.create(
                     status=True,
                     mailing_list=mailing_list,
                 )
-            new_message.clients.set(clients)
+            new_message.clients.set(clients_accept)
 
-            return Response(
-                    {"Message": "Рассылка прошла успешно"}
+        if clients_failed:
+            new_message = Message.objects.create(
+                    status=False,
+                    mailing_list=mailing_list,
                 )
+            new_message.clients.set(clients_failed)
 
-        return Response(
-                {"Message": "Что-то пошло не так"}
-            )
+        return Response({"Message": "Рассылка прошла успешно"})
 
 
 class TotalStatsDetailAPIView(APIView):
