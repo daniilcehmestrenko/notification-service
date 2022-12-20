@@ -5,10 +5,9 @@ from rest_framework.views import APIView
 
 from .models import Client, MailingList, Message
 from .serializers import ClientSerializer, MailingListSerializer
-from .service import SendMail
+from .tasks import send_message
 
-
-class MailingStartAPIView(SendMail, APIView):
+class MailingStartAPIView(APIView):
 
     def get(self, request, pk):
         mailing_list = MailingList.objects.get(pk=pk)
@@ -21,7 +20,7 @@ class MailingStartAPIView(SendMail, APIView):
         clients_failed = []
 
         for client in clients:
-            if self.send_mail(
+            if send_message.delay(
                     pk=pk,
                     phone=int(client.phone),
                     text=mailing_list.text):
