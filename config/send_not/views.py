@@ -3,14 +3,14 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Client, MailingList, Message
+from .models import Client, MailingList
 from .serializers import ClientSerializer, MailingListSerializer
 from .tasks import send_message_task
 
 class MailingStartAPIView(APIView):
 
     def get(self, request, pk):
-        send_message_task(pk)
+        send_message_task.delay(pk)
 
         return Response({"Message": "Рассылка прошла успешно"})
 
