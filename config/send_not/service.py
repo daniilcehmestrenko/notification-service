@@ -1,7 +1,7 @@
 import requests
 
 
-class SendMessage:
+class MessageSender:
     BASE_URL = "https://probe.fbrq.cloud/v1"
     HEADERS = {
             "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MDE0MjIyMTYsImlzcyI6ImZhYnJpcXVlIiwibmFtZSI6IktpbWNoaWRldmVsb3BlciJ9.R5mncjM_tjcfZmFmm9qnQpLocod9ANkbJ-UXHOkqLfM"

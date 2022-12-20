@@ -1,46 +1,16 @@
-from django.db.models import Count, F, Q
+from django.db.models import Count, F
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Client, MailingList, Message
 from .serializers import ClientSerializer, MailingListSerializer
-from .tasks import send_message
+from .tasks import send_message_task
 
 class MailingStartAPIView(APIView):
 
     def get(self, request, pk):
-        mailing_list = MailingList.objects.get(pk=pk)
-        client_filter = (
-                Q(tag=mailing_list.client_filter) |
-                Q(code=mailing_list.client_filter)
-            )
-        clients = Client.objects.filter(client_filter)
-        clients_accept = []
-        clients_failed = []
-
-        for client in clients:
-            if send_message.delay(
-                    pk=pk,
-                    phone=int(client.phone),
-                    text=mailing_list.text):
-                clients_accept.append(client)
-            else:
-                clients_failed.append(client)
-
-        if clients_accept:
-            Message.objects.create_message(
-                    mailing_list=mailing_list,
-                    status=True,
-                    clients=clients_accept
-                )
-
-        if clients_failed:
-            Message.objects.create_message(
-                    mailing_list=mailing_list,
-                    status=False,
-                    clients=clients_failed
-                )
+        send_message_task(pk)
 
         return Response({"Message": "Рассылка прошла успешно"})
 
