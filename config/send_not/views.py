@@ -1,3 +1,4 @@
+from django_celery_beat.models import CrontabSchedule, PeriodicTask
 from django.db.models import Count, F
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.response import Response
@@ -74,6 +75,29 @@ class ClientDetailAPIView(RetrieveUpdateDestroyAPIView):
 class MailingListAPIView(ListCreateAPIView):
     queryset = MailingList.objects.all()
     serializer_class = MailingListSerializer
+
+    def create(self, request, *args, **kwargs):
+        new_mailing_list = super().create(request, *args, **kwargs)
+        mailing_list = MailingList.objects.last()
+        if mailing_list:
+            date_start = mailing_list.date_start
+            schedule = CrontabSchedule.objects.create(
+                        minute=date_start.strftime('%M'),
+                        hour=date_start.strftime('%H'),
+                        day_of_week='*',
+                        day_of_month=date_start.strftime('%d'),
+                        month_of_year=date_start.strftime('%m'),
+                    )
+            PeriodicTask.objects.create(
+                        crontab=schedule,
+                        name=f'Mailing list {mailing_list.pk}',
+                        task='send_not.tasks.mailing_list_task',
+                        one_off=True,
+                        kwargs={"pk": mailing_list.pk},
+                        start_time=mailing_list.date_start
+                    )
+
+        return new_mailing_list
 
 
 class MailingListDetailAPIView(RetrieveUpdateDestroyAPIView):
