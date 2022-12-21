@@ -5,14 +5,14 @@ from rest_framework.views import APIView
 
 from .models import Client, MailingList
 from .serializers import ClientSerializer, MailingListSerializer
-from .tasks import send_message_task
+from .tasks import mailing_list_task
 
 class MailingStartAPIView(APIView):
 
     def get(self, request, pk):
-        send_message_task.delay(pk)
+        mailing_list_task.delay(pk)
 
-        return Response({"Message": "Рассылка прошла успешно"})
+        return Response({"Message": "Рассылка запущена"})
 
 
 class TotalStatsDetailAPIView(APIView):
