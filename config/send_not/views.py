@@ -93,7 +93,7 @@ class MailingListAPIView(ListCreateAPIView):
                         name=f'Mailing list {mailing_list.pk}',
                         task='send_not.tasks.mailing_list_task',
                         one_off=True,
-                        kwargs={"pk": mailing_list.pk},
+                        args=[mailing_list.pk],
                         start_time=mailing_list.date_start
                     )
 
