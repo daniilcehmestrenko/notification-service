@@ -6,15 +6,6 @@ from .service import MessageSender
 
 
 @app.task
-def send_message_task(pk, phone, text):
-    MessageSender.send_message(
-                pk=pk,
-                phone=phone,
-                text=text
-            )
-
-
-@app.task
 def mailing_list_task(pk):
     mailing_list = MailingList.objects.get(pk=pk)
     client_filter = (
@@ -22,30 +13,31 @@ def mailing_list_task(pk):
             Q(code=mailing_list.client_filter)
         )
     clients = Client.objects.filter(client_filter)
-    clients_accept = []
+    clients_acces = []
     clients_failed = []
 
     for client in clients:
-        task = send_message_task.delay(
-                pk=mailing_list.pk,
-                phone=int(client.phone),
-                text=mailing_list.text
-            )
-        if task.result:
-            clients_accept.append(client)
+        status = MessageSender.send_message(
+                    pk=mailing_list.pk,
+                    phone=client.phone,
+                    text=mailing_list.text
+                )
+
+        if status:
+            clients_acces.append(client)
         else:
             clients_failed.append(client)
 
-    if clients_accept:
+    if clients_acces:
         Message.objects.create_message(
-                mailing_list=mailing_list,
-                status=True,
-                clients=clients_accept
-            )
-
+                    status=True,
+                    mailing_list=mailing_list,
+                    clients=clients_acces
+                )
     if clients_failed:
         Message.objects.create_message(
-                mailing_list=mailing_list,
-                status=False,
-                clients=clients_failed
-            )
+                    status=False,
+                    mailing_list=mailing_list,
+                    clients=clients_failed
+                )
+
