@@ -39,6 +39,6 @@ urlpatterns = [
     path(
         'mailingstart/<int:pk>/',
         MailingStartAPIView.as_view(),
-        name='mailing)start'
+        name='mailingstart'
     ),
 ]

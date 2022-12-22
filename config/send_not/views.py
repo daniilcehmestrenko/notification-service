@@ -77,7 +77,7 @@ class MailingListAPIView(ListCreateAPIView):
     serializer_class = MailingListSerializer
 
     def create(self, request, *args, **kwargs):
-        super().create(request, *args, **kwargs)
+        new_mailing_list = super().create(request, *args, **kwargs)
         mailing_list = MailingList.objects.last()
         if mailing_list:
             date_start = mailing_list.date_start
