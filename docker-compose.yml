@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  web:
+    build: ./config
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./config:/usr/src/app/
+    ports:
+      - 8000:8000
+    environment:
+      - DEBUG=1
+      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  celery:
+    build: ./config
+    command: celery --app=config worker --loglevel=info
+    volumes:
+      - ./config:/usr/src/app
+
+    environment:
+      - DEBUG=1
+      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
+
+  celerybeat:
+    build: ./config
+    command: celery -A config beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ./config:/usr/src/app
+
+    environment:
+      - DEBUG=1
+      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
+
+  redis:
+    image: redis:7-alpine
+
+  dashboard:
+    build: ./config
+    ports:
+      - 5555:5555
+    environment:
+      - DEBUG=1
+      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
+      - celery
