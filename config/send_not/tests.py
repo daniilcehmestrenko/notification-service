@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from .models import Client, MailingList, Message
+from .models import Client, MailingList
 from .serializers import ClientSerializer, MailingListSerializer
 
 
@@ -60,14 +60,3 @@ class SendNotTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), serializer.data)
-
-    def test_mailing_start(self):
-        response = self.client.get(
-                reverse(
-                    'mailingstart',
-                    kwargs={'pk': self.one_mailing_list.pk}
-                )
-            )
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), {"Message": "Рассылка запущена"})

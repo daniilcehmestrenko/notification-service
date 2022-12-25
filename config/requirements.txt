@@ -20,6 +20,7 @@ kombu==5.2.4
 mypy==0.991
 mypy-extensions==0.4.3
 prompt-toolkit==3.0.36
+psycopg2-binary==2.9.5
 python-crontab==2.7.0
 python-dateutil==2.8.2
 pytz==2022.6
