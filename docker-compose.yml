@@ -1,26 +1,20 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:12.0-alpine
-    volumes:
-      - postgres_volume:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_DB=notification
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=123
-
   web:
     build: ./config
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./config:/usr/src/app/
     ports:
       - 8000:8000
-    env_file:
-      - ./.env.dev
+    environment:
+      - DEBUG=1
+      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
+      - DJANGO_ALLOWED_HOSTS=*
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
     depends_on:
-      - db
       - redis
 
   celery:
@@ -29,6 +23,12 @@ services:
     volumes:
       - ./config:/usr/src/app
 
+    environment:
+      - DEBUG=1
+      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
+      - DJANGO_ALLOWED_HOSTS=*
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
     depends_on:
       - web
       - redis
@@ -38,6 +38,13 @@ services:
     command: celery -A config beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
     volumes:
       - ./config:/usr/src/app
+
+    environment:
+      - DEBUG=1
+      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
+      - DJANGO_ALLOWED_HOSTS=*
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
     depends_on:
       - web
       - redis
@@ -49,9 +56,13 @@ services:
     build: ./config
     ports:
       - 5555:5555
+    environment:
+      - DEBUG=1
+      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
+      - DJANGO_ALLOWED_HOSTS=*
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
     depends_on:
       - web
       - redis
       - celery
-volumes:
-  postgres_volume:
