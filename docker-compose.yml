@@ -1,6 +1,23 @@
 version: '3.8'
 
 services:
+  db:
+    image: postgres:14.0-alpine
+    networks:
+      - django-net
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=user
+      - POSTGRES_DB=service
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   web:
     build: ./config
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
@@ -8,27 +25,23 @@ services:
       - ./config:/usr/src/app/
     ports:
       - 8000:8000
-    environment:
-      - DEBUG=1
-      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
-      - DJANGO_ALLOWED_HOSTS=*
-      - CELERY_BROKER=redis://redis:6379/0
-      - CELERY_BACKEND=redis://redis:6379/0
+    networks:
+      - django-net
+    env_file:
+      - ./env.dev
     depends_on:
-      - redis
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   celery:
     build: ./config
     command: celery --app=config worker --loglevel=info
-    volumes:
-      - ./config:/usr/src/app
-
-    environment:
-      - DEBUG=1
-      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
-      - DJANGO_ALLOWED_HOSTS=*
-      - CELERY_BROKER=redis://redis:6379/0
-      - CELERY_BACKEND=redis://redis:6379/0
+    restart: unless-stopped
+    env_file:
+      - ./env.dev
+    networks:
+      - django-net
     depends_on:
       - web
       - redis
@@ -36,33 +49,24 @@ services:
   celerybeat:
     build: ./config
     command: celery -A config beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
-    volumes:
-      - ./config:/usr/src/app
-
-    environment:
-      - DEBUG=1
-      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
-      - DJANGO_ALLOWED_HOSTS=*
-      - CELERY_BROKER=redis://redis:6379/0
-      - CELERY_BACKEND=redis://redis:6379/0
+    restart: unless-stopped
+    env_file:
+      - ./env.dev
+    networks:
+      - django-net
     depends_on:
       - web
       - redis
 
   redis:
     image: redis:7-alpine
+    restart: unless-stopped
+    networks:
+      - django-net
 
-  dashboard:
-    build: ./config
-    ports:
-      - 5555:5555
-    environment:
-      - DEBUG=1
-      - SECRET_KEY= django-insecure-q^gnie!d2l(*b-_+8@icea5f-9-fw68zz!43mywdd)kxi*#9l2
-      - DJANGO_ALLOWED_HOSTS=*
-      - CELERY_BROKER=redis://redis:6379/0
-      - CELERY_BACKEND=redis://redis:6379/0
-    depends_on:
-      - web
-      - redis
-      - celery
+networks:
+  django-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
